@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <script src="js/prototype-1.6.0.2.js"></script>
+
+    <script src='js/box2d/common/b2Settings.js'></script>
+    <script src='js/box2d/common/math/b2Vec2.js'></script>
+    <script src='js/box2d/common/math/b2Mat22.js'></script>
+    <script src='js/box2d/common/math/b2Math.js'></script>
+    <script src='js/box2d/collision/b2AABB.js'></script>
+    <script src='js/box2d/collision/b2Bound.js'></script>
+    <script src='js/box2d/collision/b2BoundValues.js'></script>
+    <script src='js/box2d/collision/b2Pair.js'></script>
+    <script src='js/box2d/collision/b2PairCallback.js'></script>
+    <script src='js/box2d/collision/b2BufferedPair.js'></script>
+    <script src='js/box2d/collision/b2PairManager.js'></script>
+    <script src='js/box2d/collision/b2BroadPhase.js'></script>
+    <script src='js/box2d/collision/b2Collision.js'></script>
+    <script src='js/box2d/collision/Features.js'></script>
+    <script src='js/box2d/collision/b2ContactID.js'></script>
+    <script src='js/box2d/collision/b2ContactPoint.js'></script>
+    <script src='js/box2d/collision/b2Distance.js'></script>
+    <script src='js/box2d/collision/b2Manifold.js'></script>
+    <script src='js/box2d/collision/b2OBB.js'></script>
+    <script src='js/box2d/collision/b2Proxy.js'></script>
+    <script src='js/box2d/collision/ClipVertex.js'></script>
+    <script src='js/box2d/collision/shapes/b2Shape.js'></script>
+    <script src='js/box2d/collision/shapes/b2ShapeDef.js'></script>
+    <script src='js/box2d/collision/shapes/b2BoxDef.js'></script>
+    <script src='js/box2d/collision/shapes/b2MassData.js'></script>
+    <script src='js/box2d/collision/shapes/b2PolyShape.js'></script>
+    <script src='js/box2d/dynamics/b2Body.js'></script>
+    <script src='js/box2d/dynamics/b2BodyDef.js'></script>
+    <script src='js/box2d/dynamics/b2CollisionFilter.js'></script>
+    <script src='js/box2d/dynamics/b2Island.js'></script>
+    <script src='js/box2d/dynamics/b2TimeStep.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactNode.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2Contact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactConstraint.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactConstraintPoint.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactRegister.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2ContactSolver.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2CircleContact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2Conservative.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2NullContact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2PolyAndCircleContact.js'></script>
+    <script src='js/box2d/dynamics/contacts/b2PolyContact.js'></script>
+    <script src='js/box2d/dynamics/b2ContactManager.js'></script>
+    <script src='js/box2d/dynamics/b2World.js'></script>
+    <script src='js/box2d/dynamics/joints/b2JointNode.js'></script>
+    <script src='js/box2d/dynamics/joints/b2Joint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2JointDef.js'></script>
+    <script src='js/box2d/dynamics/joints/b2Jacobian.js'></script>
+    <script src='js/box2d/dynamics/joints/b2MouseJoint.js'></script>
+    <script src='js/box2d/dynamics/joints/b2MouseJointDef.js'></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSAP Jump Text & Links</title>
+    <style>
+        @font-face {
+            font-family: 'PixelComicSans';
+            src: url('./pcs.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        .link-item:hover .link-title,
+        .link-item:hover .link-icon {
+            color: #FFD700;
+            /* Yellow text */
+        }
+
+        /* Ensure the icon background color still works */
+        .link-item:hover .link-icon {
+            background-color: #FFD700;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #004080;
+            color: #fff;
+            font-family: 'PixelComicSans', sans-serif;
+            overflow-x: hidden;
+            overflow: hidden;
+
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -o-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
+            min-height: 100vh;
+            justify-content: center;
+        }
+
+        .text-mask-container {
+            position: relative;
+            /* 400px provides enough room for the bounce, while the start Y (+/- 400) ensures hiding */
+            height: 400px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            margin-bottom: 0;
+            padding: 20px 0;
+        }
+
+        .jump-text {
+            /* Responsive Font Size */
+            font-size: clamp(1.8rem, 10vw, 6rem);
+            font-weight: 800;
+            margin: 0;
+            color: #fff;
+            line-height: 1.2;
+            display: block;
+            white-space: nowrap;
+            transform-origin: center center;
+            will-change: transform;
+        }
+
+        .word {
+            display: inline-block;
+        }
+
+        .links-container {
+            display: flex;
+            height: 0;
+            overflow: visible;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            padding: 4px 10px;
+            box-sizing: border-box;
+            opacity: 0;
+            margin-top: 0px;
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Center by default (desktop) */
+            background: transparent;
+            border: none;
+            padding: 5px 0;
+            text-decoration: none;
+            color: #fff;
+            /* Removed color transition so it snaps instantly */
+            transition: transform 0.2s ease;
+            position: relative;
+            width: fit-content;
+            margin: 0 auto;
+            cursor: pointer;
+        }
+
+        .link-item:hover {
+            transform: scale(1.1);
+            color: #FFD700;
+            /* Yellow */
+        }
+
+        /* Updated Icon Styling for Color Control */
+        .link-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            flex-shrink: 0;
+
+            /* Use Masking to control color */
+            background-color: #fff;
+            /* Default to white */
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: contain;
+            mask-size: contain;
+            -webkit-mask-position: center;
+            mask-position: center;
+
+            /* No transition property here ensures instant color change */
+        }
+
+        /* Change icon color on hover */
+        .link-item:hover .link-icon {
+            background-color: #FFD700;
+        }
+
+        .link-title {
+            font-size: clamp(1rem, 3.5vw, 1.5rem);
+            font-weight: 800;
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 4px;
+        }
+
+        .link-arrow {
+            display: none;
+        }
+
+        /* --- MOBILE / VERTICAL MODE STYLES --- */
+        @media (max-width: 600px) {
+            .content-wrapper {
+                align-items: flex-start;
+                /* Align wrapper to left */
+            }
+
+            .text-mask-container {
+                /* Keep text centered because the animation looks best centered */
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+            }
+        }
+
+
+#star-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; 
+  
+  /* Initial State: A circle with 0 radius at the center */
+  clip-path: circle(0% at 50% 50%);
+  
+  /* Make sure opacity is 1, so it's fully visible inside the circle */
+  opacity: 1; 
+}
+
+/* 1. The Wrapper (Controlled by Mouse) */
+.layer-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Smooths out the mouse movement */
+  transition: transform 0.1s ease-out; 
+}
+
+/* 2. The Stars (Controlled by CSS Animation) */
+.star-layer {
+  background: transparent;
+  box-shadow: var(--star-shadows);
+}
+
+/* The infinite loop helper */
+.star-layer::after {
+  content: " ";
+  position: absolute;
+  top: 2000px; /* Must match animation distance */
+  width: inherit;
+  height: inherit;
+  background: transparent;
+  box-shadow: inherit; /* Copies the stars exactly */
+}
+
+/* Specific settings for layers */
+#stars-small {
+  width: 1px;
+  height: 1px;
+  animation: animStar 50s linear infinite;
+}
+
+#stars-medium {
+  width: 2px;
+  height: 2px;
+  animation: animStar 100s linear infinite;
+}
+
+#stars-big {
+  width: 3px;
+  height: 3px;
+  animation: animStar 150s linear infinite;
+}
+
+@keyframes animStar {
+  from { transform: translateY(0px); }
+  to   { transform: translateY(-2000px); }
+}
+    </style>
+</head>
+
+<body>
+
+<div id="star-container">
+  <div class="layer-wrapper" data-speed="0.025">
+    <div id="stars-small"></div>
+  </div>
+
+  <div class="layer-wrapper" data-speed="0.05">
+    <div id="stars-medium"></div>
+  </div>
+
+  <div class="layer-wrapper" data-speed="0.1">
+    <div id="stars-big"></div>
+  </div>
+</div>
+
+    <div class="content-wrapper">
+        <div class="text-mask-container">
+            <h1 class="jump-text">
+                <span class="word">the</span><span class="word">fat</span><span class="word">space</span><span
+                    class="word">cat</span>
+            </h1>
+        </div>
+
+        <div class="links-container" id="links-list"></div>
+    </div>
+
+    <!-- GSAP CDN -->
+    <script src="./js/gsap.min.js"></script>
+    <script src="./main.js"></script>
+</body>
+
+</html>
